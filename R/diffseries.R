@@ -26,3 +26,25 @@ diffseries <- function(x, d)
     ydiff
 }
 
+# ydiff must be a result returned by diffseries (in the fracdiff package).
+# that means that (ydiff[1] == x[1] - mean(x)) of the original series x.
+diffseriesinv <- function(ydiff, d, xi) {
+  if (d %% 1 == 0 & d > 0) # order of integration is a positive integer
+    return(diffinv(tail(ydiff, -d), differences = d, xi = head(xi, d)))
+  
+  n <- length(ydiff)
+  PI <- numeric(n)
+  PI[1] <- -d
+  for (k in 2:n) {
+    PI[k] <- PI[k - 1] * (k - 1 - d) / k
+  }
+  
+  ymean <- head(xi, 1) - ydiff[1]
+  x <- numeric(n)
+  x[1] <- head(xi, 1)
+  for (i in 2:n) {
+    x[i] <- ydiff[i] + ymean - sum(PI[1:(i - 1)] * (x[(i - 1):1] - ymean))
+  }
+  x
+}
+
